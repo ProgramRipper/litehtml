@@ -1,6 +1,9 @@
 #ifndef LH_DOCUMENT_H
 #define LH_DOCUMENT_H
 
+#include <functional>
+#include <vector>
+
 #include "stylesheet.h"
 #include "types.h"
 #include "master_css.h"
@@ -53,6 +56,7 @@ namespace litehtml
 		std::shared_ptr<render_item>		m_root_render;
 		document_container*					m_container;
 		fonts_map							m_fonts;
+		std::vector<std::function<void()>>  m_pending_stylesheets;
 		css_text::vector					m_css;
 		litehtml::css						m_styles;
 		litehtml::web_color					m_def_color;
@@ -87,6 +91,8 @@ namespace litehtml
 		pixel_t							content_width() const;
 		pixel_t							content_height() const;
 		void							add_stylesheet(const char* str, const char* baseurl, const char* media);
+		void							add_pending_stylesheet(const std::function<void()>& fn) { m_pending_stylesheets.push_back(fn); }
+		void                            wait_for_pending_stylesheets();
 		bool							on_mouse_over(pixel_t x, pixel_t y, pixel_t client_x, pixel_t client_y, position::vector& redraw_boxes);
 		bool							on_lbutton_down(pixel_t x, pixel_t y, pixel_t client_x, pixel_t client_y, position::vector& redraw_boxes);
 		bool							on_lbutton_up(pixel_t x, pixel_t y, pixel_t client_x, pixel_t client_y, position::vector& redraw_boxes);

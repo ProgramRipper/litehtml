@@ -3,36 +3,38 @@
 #include "document_container.h"
 #include <cstring>
 
-litehtml::el_link::el_link(const std::shared_ptr<document>& doc) : litehtml::html_tag(doc)
-{
-
-}
+litehtml::el_link::el_link(const std::shared_ptr<document>& doc) : litehtml::html_tag(doc) {}
 
 void litehtml::el_link::parse_attributes()
 {
-	bool processed = false;
-
 	document::ptr doc = get_document();
 
 	const char* rel = get_attr("rel");
-	if(rel && !strcmp(rel, "stylesheet"))
+	if (rel && !strcmp(rel, "stylesheet"))
 	{
-		const char* media	= get_attr("media");
-		const char* href	= get_attr("href");
-		if(href && href[0])
+		const char* media = get_attr("media");
+		const char* href = get_attr("href");
+		if (href && href[0])
 		{
-			string css_text;
-			string css_baseurl;
-			doc->container()->import_css(css_text, href, css_baseurl);
-			if(!css_text.empty())
+			string media_copy;
+			if (media && media[0])
 			{
-				doc->add_stylesheet(css_text.c_str(), css_baseurl.c_str(), media);
-				processed = true;
+				media_copy = media;
 			}
+			auto wait_for_import_completion = doc->container()->import_css(
+				href, "", [&, media_copy, doc](const string& css_text, const string& new_baseurl) {
+					printf("Adding stylesheet, media: %s\n", media_copy.c_str());
+					if (!css_text.empty())
+					{
+						doc->add_stylesheet(css_text.c_str(), new_baseurl.c_str(), media_copy.c_str());
+					} else
+					{
+						doc->container()->link(doc, shared_from_this());
+					}
+				});
+			doc->add_pending_stylesheet(wait_for_import_completion);
 		}
-	}
-
-	if(!processed)
+	} else
 	{
 		doc->container()->link(doc, shared_from_this());
 	}

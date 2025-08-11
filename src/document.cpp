@@ -1,5 +1,9 @@
 #include "html.h"
 #include "document.h"
+
+#include <functional>
+#include <vector>
+
 #include "stylesheet.h"
 #include "html_tag.h"
 #include "el_text.h"
@@ -90,6 +94,8 @@ document::ptr document::createFromString(
 		doc->m_user_css.sort_selectors();
 	}
 
+	doc->wait_for_pending_stylesheets();
+
 	// Let's process created elements tree
 	if (doc->m_root)
 	{
@@ -103,6 +109,8 @@ document::ptr document::createFromString(
 		// parse elements attributes
 		doc->m_root->parse_attributes();
 
+		doc->wait_for_pending_stylesheets();
+
 		// parse style sheets linked in document
 		for (const auto& css : doc->m_css)
 		{
@@ -115,6 +123,9 @@ document::ptr document::createFromString(
 			}
 			doc->m_styles.parse_css_stylesheet(css.text, css.baseurl, doc, media);
 		}
+
+		doc->wait_for_pending_stylesheets();
+
 		// Sort css selectors using CSS rules.
 		doc->m_styles.sort_selectors();
 
@@ -623,6 +634,18 @@ pixel_t document::content_height() const
 	return m_content_size.height;
 }
 
+
+void document::wait_for_pending_stylesheets()
+{
+	printf("Waiting for %zu pending stylesheets\n", m_pending_stylesheets.size());
+	// Wait for all pending stylesheets to be processed.
+	while (!m_pending_stylesheets.empty())
+	{
+		auto pending_fn = m_pending_stylesheets.back();
+		m_pending_stylesheets.pop_back();
+		pending_fn();
+	}
+}
 
 void document::add_stylesheet( const char* str, const char* baseurl, const char* media )
 {
