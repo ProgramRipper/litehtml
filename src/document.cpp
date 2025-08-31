@@ -637,7 +637,6 @@ pixel_t document::content_height() const
 
 void document::wait_for_pending_stylesheets()
 {
-	printf("Waiting for %zu pending stylesheets\n", m_pending_stylesheets.size());
 	// Wait for all pending stylesheets to be processed.
 	while (!m_pending_stylesheets.empty())
 	{

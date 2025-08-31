@@ -22,8 +22,7 @@ void litehtml::el_link::parse_attributes()
 				media_copy = media;
 			}
 			auto wait_for_import_completion = doc->container()->import_css(
-				href, "", [&, media_copy, doc](const string& css_text, const string& new_baseurl) {
-					printf("Adding stylesheet, media: %s\n", media_copy.c_str());
+				href, "", [=](const string& css_text, const string& new_baseurl) {
 					if (!css_text.empty())
 					{
 						doc->add_stylesheet(css_text.c_str(), new_baseurl.c_str(), media_copy.c_str());
