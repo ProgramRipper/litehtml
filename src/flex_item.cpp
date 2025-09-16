@@ -28,8 +28,18 @@ void litehtml::flex_item::init(const litehtml::containing_block_context &self_si
 	{
 		align = el->css().get_flex_align_self();
 	}
-	main_size = base_size;
-	scaled_flex_shrink_factor = base_size * shrink;
+
+	if (base_size < min_size)
+	{
+		main_size = min_size;
+	} else if (!max_size.is_default() && base_size > max_size)
+	{
+		main_size = max_size;
+	} else
+	{
+		main_size = base_size;
+	}
+
 	frozen = false;
 }
 
@@ -137,12 +147,12 @@ void litehtml::flex_item_row_direction::direction_specific_init(const litehtml::
 	} else
 	{
 		min_size = el->css().get_min_width().calc_percent(self_size.render_width) +
-				   el->content_offset_width();
+				   el->render_offset_width();
 	}
 	if (!el->css().get_max_width().is_predefined())
 	{
 		max_size = el->css().get_max_width().calc_percent(self_size.render_width) +
-				   el->content_offset_width();
+				   el->render_offset_width();
 	}
 	bool flex_basis_predefined = el->css().get_flex_basis().is_predefined();
 	int predef = flex_basis_auto;
@@ -199,9 +209,10 @@ void litehtml::flex_item_row_direction::direction_specific_init(const litehtml::
 	} else
 	{
 		base_size = el->css().get_flex_basis().calc_percent(self_size.render_width) +
-					el->content_offset_width();
-		base_size = std::max(base_size, min_size);
+					el->render_offset_width();
 	}
+
+	scaled_flex_shrink_factor = (base_size - el->render_offset_width()) * shrink;
 }
 
 void litehtml::flex_item_row_direction::apply_main_auto_margins()
@@ -320,12 +331,12 @@ void litehtml::flex_item_column_direction::direction_specific_init(const litehtm
 	} else
 	{
 		min_size = el->css().get_min_height().calc_percent(self_size.height) +
-				   el->content_offset_height();
+				   el->render_offset_height();
 	}
 	if (!el->css().get_max_height().is_predefined())
 	{
 		max_size = el->css().get_max_height().calc_percent(self_size.height) +
-				   el->content_offset_width();
+				   el->render_offset_height();
 	}
 
 	bool flex_basis_predefined = el->css().get_flex_basis().is_predefined();
@@ -351,7 +362,7 @@ void litehtml::flex_item_column_direction::direction_specific_init(const litehtm
 		{
 			case flex_basis_auto:
 				base_size = el->css().get_height().calc_percent(self_size.height) +
-							el->content_offset_height();
+							el->render_offset_height();
 				break;
 			case flex_basis_max_content:
 			case flex_basis_fit_content:
@@ -371,17 +382,18 @@ void litehtml::flex_item_column_direction::direction_specific_init(const litehtm
 			if(self_size.height.type == containing_block_context::cbc_value_type_absolute)
 			{
 				base_size = el->css().get_flex_basis().calc_percent(self_size.height) +
-							el->content_offset_height();
+							el->render_offset_height();
 			} else
 			{
 				base_size = 0;
 			}
 		} else
 		{
-			base_size = (pixel_t) el->css().get_flex_basis().val() + el->content_offset_height();
+			base_size = (pixel_t) el->css().get_flex_basis().val() + el->render_offset_height();
 		}
-		base_size = std::max(base_size, min_size);
 	}
+
+	scaled_flex_shrink_factor = (base_size - el->render_offset_height()) * shrink;
 }
 
 void litehtml::flex_item_column_direction::apply_main_auto_margins()

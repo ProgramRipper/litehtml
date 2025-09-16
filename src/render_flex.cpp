@@ -35,11 +35,7 @@ litehtml::pixel_t litehtml::render_item_flex::_render_content(pixel_t x, pixel_t
 	{
 		if(self_size.height.type != containing_block_context::cbc_value_type_auto)
 		{
-			container_main_size = self_size.height;
-			if (css().get_box_sizing() == box_sizing_border_box)
-			{
-				container_main_size -= box_sizing_height();
-			}
+			container_main_size = self_size.height - box_sizing_height();
 		} else
 		{
 			// Direction columns, height is auto - always in single line
@@ -100,11 +96,7 @@ litehtml::pixel_t litehtml::render_item_flex::_render_content(pixel_t x, pixel_t
 	{
 		if (self_size.height.type != containing_block_context::cbc_value_type_auto)
 		{
-			pixel_t height = self_size.height;
-			if (src_el()->css().get_box_sizing() == box_sizing_border_box)
-			{
-				height -= box_sizing_height();
-			}
+			pixel_t height = self_size.height - box_sizing_height();
 			free_cross_size = height - sum_cross_size;
 		}
 	} else
@@ -301,14 +293,13 @@ std::list<litehtml::flex_line> litehtml::render_item_flex::get_lines(const liteh
 	// Add flex items to lines
 	for(auto& item : items)
 	{
-		if(!line.items.empty() && !single_line && line.base_size + item->base_size > container_main_size)
+		if(!line.items.empty() && !single_line && line.main_size + item->main_size > container_main_size)
 		{
 			lines.emplace_back(line);
 			line = flex_line(reverse_main, reverse_cross);
 		}
 		line.base_size += item->base_size;
-		line.total_grow += item->grow;
-		line.total_shrink += item->shrink;
+		line.main_size += item->main_size;
 		if(!item->auto_margin_main_start.is_default()) line.num_auto_margin_main_start++;
 		if(!item->auto_margin_main_end.is_default()) line.num_auto_margin_main_end++;
 		line.items.push_back(item);

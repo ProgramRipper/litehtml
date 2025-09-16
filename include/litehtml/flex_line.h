@@ -12,11 +12,9 @@ namespace litehtml
 		public:
 		std::list<std::shared_ptr<flex_item>> items;
 		pixel_t cross_start;	// for row direction: top. for column direction: left
-		pixel_t main_size;		// sum of all items main size
+		pixel_t main_size;		// sum of all items main size, initially the sum of hypothetical main sizes
 		pixel_t cross_size;		// sum of all items cross size
 		pixel_t base_size;
-		int total_grow;
-		int total_shrink;
 		int num_auto_margin_main_start;		// number of items with auto margin left/top
 		int num_auto_margin_main_end;		// number of items with auto margin right/bottom
 		baseline first_baseline;
@@ -29,8 +27,6 @@ namespace litehtml
 				main_size(0),
 				cross_size(0),
 				base_size(0),
-				total_grow(0),
-				total_shrink(0),
 				num_auto_margin_main_start(0),
 				num_auto_margin_main_end(0),
 				first_baseline(),
@@ -50,6 +46,9 @@ namespace litehtml
 									  formatting_context *fmt_ctx);
 	protected:
 		void distribute_free_space(pixel_t container_main_size);
+		void distribute_free_space_grow(pixel_t container_main_size);
+		void distribute_free_space_shrink(pixel_t container_main_size);
+		bool fix_min_max_violations();
 	};
 }
 
