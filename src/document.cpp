@@ -103,6 +103,9 @@ document::ptr document::createFromString(
 
 		doc->m_root->set_pseudo_class(_root_, true);
 
+		// Fix default font size so that evaluating `rem` for root element works correctly
+		doc->m_root->css_w().set_font_size(doc->container()->get_default_font_size());
+
 		// apply master CSS
 		doc->m_root->apply_stylesheet(doc->m_master_css);
 
