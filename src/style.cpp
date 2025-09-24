@@ -1628,12 +1628,15 @@ bool subst_var(css_token_vector& tokens, const html_tag* el, std::set<string_id>
 			used_vars.insert(name);
 
 			css_token_vector value;
-			if (el->get_custom_property(name, value))
+			// CSSWG 2.2. Guaranteed-invalid Value
+			// If, for whatever reason, one wants to manually reset a custom property to the guaranteed-invalid value,
+			// using the keyword initial will do this.
+			if (el->get_custom_property(name, value) && (value.size() != 1 || value[0].name != "initial"))
 			{
 				remove(tokens, i);
 				insert(tokens, i, value);
 			}
-			else // custom property not defined
+			else // custom property not defined, or using `initial` to reset to guaranteed-invalid value
 			{
 				if (args.size() == 1) return false; // default value not provided
 				remove(args, 0, 2);
